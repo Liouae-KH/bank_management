@@ -694,11 +694,14 @@ void search_bank_account(int id_acnt_search) {
   if (acnt_file == NULL) { printf("<menu/client_manegment/search_bank_account> no bank account have been found.\n"); return; }
   
   struct account acnt_search;
+  int found = 0;
   while(fread(&acnt_search,sizeof(struct account),1,acnt_file)==1){
     if (acnt_search.clientID==id_acnt_search){
       printf("<menu/client_manegment/search_bank_account> bank account have been found:\n > account ID: %d.\n > client ID: %d.\n > balence: %0.2f.\n > account type: %c.\n",
               acnt_search.ID, acnt_search.clientID, acnt_search.balance,
               acnt_search.type);
+                    found = 1;
+
       if (acnt_search.blocked==1){
         printf(" > account blocked.\n");
       } else {
@@ -707,10 +710,16 @@ void search_bank_account(int id_acnt_search) {
     }
 
   }
-  printf("<erorr> ID has not been found.\n");
-  fclose(acnt_file);
+  if (!found) {
+    printf("<erorr> no accounts found for this client.\n");
+  }  fclose(acnt_file);
   return;
 }
+
+
+
+
+
 
 void edit_bank_account() {
   int accounr_id;
@@ -738,7 +747,7 @@ void edit_bank_account() {
 
   printf("<menu/account_manegment/edit_bank_account> bank account has been found. enter your new account type.\n    <enter> ");
   while(1){
-  scanf("%c",&acnt_edit.type);
+  scanf(" %c",&acnt_edit.type);
   if(acnt_edit.type=='P' || acnt_edit.type=='p' || acnt_edit.type=='C' || acnt_edit.type=='c'){break;}
   else {
     printf(" <erorr> invalid input. \n <enter> ");
@@ -746,9 +755,9 @@ void edit_bank_account() {
   }
   acnt_file_temp =fopen("accounts_temp.dat","wb");
   fwrite(&acnt_edit,sizeof(struct account),1,acnt_file_temp);
-  while(fread(&acnt_edit,-sizeof(struct account),1,acnt_file_edit)==1){
+  while(fread(&acnt_edit,sizeof(struct account),1,acnt_file_edit)==1){
     if (accounr_id != acnt_edit.ID){
-      acnt_file_temp =fopen("accounts_temp.dat","ab");
+    fwrite(&acnt_edit, sizeof(struct account), 1, acnt_file_temp);
     }
   }
   remove("accounts.dat");
@@ -761,10 +770,17 @@ void edit_bank_account() {
 }
 
 
-void money_into_account(int account_id, int mode) {
+
+
+
+
+
+void money_into_account(int mode) {
     struct account acnt_deposit;
     float money_amount = 0.00;  
-
+    int account_id;
+    printf("\n enter ur bank account ID: ");
+    scanf("%lld",&account_id);
 
     FILE *acnt_file_money = fopen("accounts.dat", "rb");
     if (acnt_file_money == NULL) {
@@ -891,7 +907,7 @@ void transfere_funds(int sender_ID) {
     }
     rewind(transfere_funds_file); 
     while(fread(&acnt_reciv, sizeof(struct account),1,transfere_funds_file)==1){
-        if(acnt_reciv.ID == enter_id){
+        if(acnt_reciv.ID == reciver_ID){
             acnt_reciv.balance+=amount;
             break;
         }
@@ -901,11 +917,17 @@ rewind(transfere_funds_file);
     FILE* temp_trens_file;
     temp_trens_file = fopen ("accounts_temp.dat","wb+");
     struct account temp_reader;
+    fwrite(&temp_reader,sizeof(struct account),1,temp_trens_file);
     while(fread(&temp_reader,sizeof(struct account),1,transfere_funds_file)==1){
-        if(temp_reader.ID != enter_id && temp_reader.ID != reciver_ID){
-        fwrite(&temp_reader,sizeof(struct account),1,temp_trens_file);
+         if (temp_reader.ID == sender_ID) {
+        temp_reader.balance -= amount;
     }
+    else if (temp_reader.ID == reciver_ID) {
+        temp_reader.balance += amount;
     }
+    fwrite(&temp_reader, sizeof(struct account), 1, temp_trens_file);
+    }
+    
     fclose(transfere_funds_file);
     fclose(temp_trens_file);
     printf(" <menu/account_management/transfere_money> transfere done! \n");
@@ -920,7 +942,7 @@ void block_account(int enter_id) {
   printf(" <menu/account_management/block_account> are you sure tou want to block the account? enter y for yes or n for no.");
   char check;
   scanf("%c",&check);
-  if (check != 'yes'){return;}
+  if (check != 'y'){return;}
 
 
   FILE *acnt_file_block;
@@ -940,7 +962,7 @@ void block_account(int enter_id) {
 
     if (enter_id != acmt_block.ID){
   fwrite(&acmt_block,sizeof(struct account),1,acnt_file_block_temp);
-  }
+  }}
 fclose(acnt_file_block);
 fclose(acnt_file_block_temp);
 remove("accounts.dat");
@@ -954,7 +976,7 @@ void delete_bank_account(int enter_id) {
   printf(" <menu/account_management/delete_account> are you sure tou want to block the account? enter y for yes or n for no.");
   char check;
   scanf("%c",&check);
-  if (check != 'yes'){return;}
+  if (check != 'y'){return;}
 
 
   FILE *acnt_file_delete;
@@ -963,7 +985,7 @@ void delete_bank_account(int enter_id) {
 
   acnt_file_delete = fopen("accounts.dat","rb");
   acnt_file_delete_temp = fopen("accounts_temp.dat","wb");
-  while(fread(&acmt_block,sizeof(struct account),1,acnt_file_delete)){
+  while(fread(&acmt_delete,sizeof(struct account),1,acnt_file_delete)){
 
     if (enter_id != acmt_delete.ID){
   fwrite(&acmt_delete,sizeof(struct account),1,acnt_file_delete_temp);
@@ -1034,7 +1056,7 @@ void bank_account_manegment() {
   scanf("%49s", enter_password);
   while (getchar() != '\n');
   if (strcmp(enter_password,"-1")==0){return;}
-  if (check_client_password(enter_password) != 1) {
+  if (check_client_password(enter_id,enter_password) != 1) {
     printf("<erorr> incorrect password .\n");
     bank_account_manegment();
     return;
@@ -1060,7 +1082,7 @@ while(1){
       break;
     case 4:
       clearScreen();
-      money_into_account(enter_id, 1);
+      money_into_account(1);
       break;
     case 5:
       clearScreen();
@@ -1068,7 +1090,7 @@ while(1){
       break;
     case 6:
       clearScreen();
-      money_into_account(enter_id, 2);
+      money_into_account(2);
       break;
     case 7:
       clearScreen();
