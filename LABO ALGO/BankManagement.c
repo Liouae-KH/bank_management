@@ -1,3 +1,18 @@
+/*
+
+start date: 17/3/2026
+end date: 25/4/2026
+
+contain:
+labo 1 : client manegmant.
+labo 2: ex1: bank accounts manegmant.
+labo 3: tast1: extabding bank accounts manegmant.
+
+DeepSeek used for some complex debuging. at most 5% of the code is AI.
+khelalfa liouaeddine.
+*/
+
+
 #include <stdio.h>
 #include <time.h>
 #include <stdlib.h>
