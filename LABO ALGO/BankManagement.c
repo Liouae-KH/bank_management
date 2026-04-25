@@ -165,13 +165,14 @@ int check_client_password(int id,char pass[50]) {
   return 0;
 }
 
-// added helper function
-int guardian_has_account(int gid) {
-  FILE *f = fopen("accounts.dat","rb");
-  if(!f) return 0;
-  struct account a;
-  while(fread(&a,sizeof(struct account),1,f)==1){
-    if(a.clientID == gid){ fclose(f); return 1; }
+int guardian_has_account(int fgard) {
+  FILE *fgard = fopen("accounts.dat","rb");
+  if(f == NULL) return 0;
+  struct account fgard_Strc;
+  while(fread(&fgard_strs,sizeof(struct account),1,fgard)==1){
+    if(fgard_strc.clientID == fgard){ 
+      fclose(fgard); 
+      return 1; }
   }
   fclose(f);
   return 0;
